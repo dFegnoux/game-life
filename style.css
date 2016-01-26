@@ -10,9 +10,12 @@ td{
   width:10px;
   height:10px;
 }
+td:hover{
+  background-color:lightgrey;
+}
 .actions{
   text-align: center;
 }
 .alive{
-  background:lightgreen;
+  background-color:lightgreen;
 }
