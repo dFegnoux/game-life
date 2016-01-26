@@ -1,0 +1,18 @@
+table, td{
+  border: 1px solid lightgrey;
+  border-collapse: collapse;
+}
+table{
+  margin: 15px auto;
+}
+td{
+  cursor: pointer;
+  width:10px;
+  height:10px;
+}
+.actions{
+  text-align: center;
+}
+.alive{
+  background:lightgreen;
+}
