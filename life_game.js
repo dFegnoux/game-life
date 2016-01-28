@@ -1,6 +1,5 @@
 lifeGame = {
 	stopInterval: true,
-	previousTable: [],
 	currentTable: [],
 	totalTurns:0,
 	_defaults: {
@@ -23,7 +22,6 @@ lifeGame = {
 		}.bind(this));
 
 		btnStop.addEventListener('click', function() {
-			console.log('### Life stopped ###');
 			this.stopInterval = true;
 		}.bind(this));
 
@@ -56,7 +54,6 @@ lifeGame = {
 		document.getElementById('life-container').appendChild(table);
 	},
 	clearLife: function() {
-		this.previousTable = [];
 		this.currentTable  = [];
 		this.stopInterval = true;
 		this.totalTurns = 0;
@@ -86,34 +83,41 @@ lifeGame = {
 			console.log("Life stopped on turn #"+this.totalTurns);
 		}
 		// Stop simulation if previous state is the same of current
-		if(this.previousTable === this.currentTable){
+	/*	if(this.previousTable === this.currentTable){
 			//this.stopInterval = true;
-		}
-		this.previousTable = this.currentTable;
+		}*/
 		for(var x = 1; x <= this.options.tableSize; x++){
 			for(var y = 1; y <= this.options.tableSize; y++){
 				this.checkNeighbour(x,y);
 			}
 		}
+		this.applyNextState();
 	},
 	checkNeighbour: function(x, y) {
 		var nbNeighbour = 0;
 		for(var i=-1; i<= 1; i++){
 			for(var j=-1; j<= 1; j++){
 				if(((x+i) > 0 && (x+i) < this.options.tableSize) && ((y+j) > 0 && (y+j) < this.options.tableSize) && !(x+i === x && y+j === y)){
-					if(this.previousTable[x+i][y+j].className === "alive") {
+					if(this.currentTable[x+i][y+j].className === "alive") {
 						nbNeighbour++;
 					}
 				}
 			}
 		}
-		if(this.previousTable[x][y].className === "alive" && (nbNeighbour < 2 || nbNeighbour > 3) ){
-				this.currentTable[x][y].className = "";
+		if(nbNeighbour < 2 || nbNeighbour > 3){
+			this.currentTable[x][y].dataset.nextstate = "dead";
 		}
 		if(nbNeighbour === 3){
-			this.currentTable[x][y].className = "alive";
+			this.currentTable[x][y].dataset.nextstate = "alive";
 		}
+	},
+	applyNextState: function() {
+		var toChangeState = document.querySelectorAll('[data-nextstate]');
+		[].forEach.call(toChangeState, function(cell) {
+			cell.className = cell.dataset.nextstate;
+			delete cell.dataset.nextstate;
+		});
 	}
 }
 
-lifeGame._init({tableSize: 20});
+lifeGame._init({tableSize: 40});
