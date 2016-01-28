@@ -8,7 +8,7 @@ lifeGame = {
 		speed: 50
 	},
 	_init: function(options){
-		this.options = $.extend({}, this._defaults, options);
+		this.options = this._extend(this._defaults, options);
 		this.createTable(this.options.tableSize);
 
 		var btnStart = document.getElementById('btn-start');
@@ -62,10 +62,10 @@ lifeGame = {
 	},
 	toggleCellStatus: function(x, y) {
 		var cell = this.currentTable[x][y];
-		if(cell.className === "alive"){
+		if(cell.className === this.options.aliveClass){
 			cell.className = "";
 		} else {
-			cell.className = "alive";
+			cell.className = this.options.aliveClass;
 		}
 	},
 	lifeStart: function(speed) {
@@ -77,15 +77,10 @@ lifeGame = {
 		}.bind(this), speed);
 	},
 	nextTurn: function() {
-		console.log('### NEW TURN ###');
 		this.totalTurns++;
 		if(this.stopInterval){
 			console.log("Life stopped on turn #"+this.totalTurns);
 		}
-		// Stop simulation if previous state is the same of current
-	/*	if(this.previousTable === this.currentTable){
-			//this.stopInterval = true;
-		}*/
 		for(var x = 1; x <= this.options.tableSize; x++){
 			for(var y = 1; y <= this.options.tableSize; y++){
 				this.checkNeighbour(x,y);
@@ -98,17 +93,17 @@ lifeGame = {
 		for(var i=-1; i<= 1; i++){
 			for(var j=-1; j<= 1; j++){
 				if(((x+i) > 0 && (x+i) < this.options.tableSize) && ((y+j) > 0 && (y+j) < this.options.tableSize) && !(x+i === x && y+j === y)){
-					if(this.currentTable[x+i][y+j].className === "alive") {
+					if(this.currentTable[x+i][y+j].className === this.options.aliveClass) {
 						nbNeighbour++;
 					}
 				}
 			}
 		}
 		if(nbNeighbour < 2 || nbNeighbour > 3){
-			this.currentTable[x][y].dataset.nextstate = "dead";
+			this.currentTable[x][y].dataset.nextstate = "";
 		}
 		if(nbNeighbour === 3){
-			this.currentTable[x][y].dataset.nextstate = "alive";
+			this.currentTable[x][y].dataset.nextstate = this.options.aliveClass;
 		}
 	},
 	applyNextState: function() {
@@ -117,7 +112,13 @@ lifeGame = {
 			cell.className = cell.dataset.nextstate;
 			delete cell.dataset.nextstate;
 		});
+	},
+	_extend : function(a, b){
+    for(var key in b)
+        if(b.hasOwnProperty(key))
+            a[key] = b[key];
+    return a;
 	}
 }
 
-lifeGame._init({tableSize: 40});
+lifeGame._init({tableSize: 40, speed: 100});
