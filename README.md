@@ -7,7 +7,6 @@ There is for now a few actions and options:
 `lifeGame._init({tableSize: 40, speed: 100});`
 
 **TODO :**
-- Possibility to change speed directly in simulation with a slider
 - Refactor code
 - Use less html and let javascript creates needed elements like container and actions buttons
 - Use more options to customize the game
