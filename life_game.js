@@ -2,6 +2,8 @@ lifeGame = {
 	stopInterval: true,
 	currentTable: [],
 	totalTurns:0,
+	lifeContainer: null,
+	txtTotalTurns: null,
 	_defaults: {
 		tableSize: 20,
 		aliveClass: "alive",
@@ -9,16 +11,20 @@ lifeGame = {
 	},
 	_init: function(options){
 		this.options = this._extend(this._defaults, options);
+		this.txtTotalTurns = document.getElementById('turn-counter');
+		this.lifeContainer = document.getElementById('life-container');
+
 		this.createTable(this.options.tableSize);
 
 		var btnStart = document.getElementById('btn-start');
 		var btnStop = document.getElementById('btn-stop');
 		var btnNext = document.getElementById('btn-next');
 		var btnClear = document.getElementById('btn-clear');
+		var rangeSpeed = document.getElementById('input-speed');
 		
 		btnStart.addEventListener('click', function() {
 			this.stopInterval = false;
-			this.lifeStart(this.options.speed);
+			this.lifeStart();
 		}.bind(this));
 
 		btnStop.addEventListener('click', function() {
@@ -31,6 +37,10 @@ lifeGame = {
 
 		btnClear.addEventListener('click', function() {
 			this.clearLife();
+		}.bind(this));
+
+		rangeSpeed.addEventListener('change', function(e) {
+			this.options.speed = e.target.value;
 		}.bind(this));
 	},
 	createTable: function(tableSize) {
@@ -51,13 +61,14 @@ lifeGame = {
 			}
 			table.appendChild(line);
 		}
-		document.getElementById('life-container').appendChild(table);
+		this.lifeContainer.appendChild(table);
 	},
 	clearLife: function() {
 		this.currentTable  = [];
 		this.stopInterval = true;
 		this.totalTurns = 0;
-		document.getElementById('life-container').innerHTML = "";
+		this.lifeContainer.innerHTML = "";
+		this.txtTotalTurns.innerHTML = this.totalTurns;
 		this.createTable(this.options.tableSize);
 	},
 	toggleCellStatus: function(x, y) {
@@ -68,13 +79,14 @@ lifeGame = {
 			cell.className = this.options.aliveClass;
 		}
 	},
-	lifeStart: function(speed) {
-		var interval = setInterval(function(){
-			if(this.stopInterval){
-				clearInterval(interval);
+	lifeStart: function() {
+		window.setTimeout(function(){
+			this.incrementTurn();
+			if(!this.stopInterval){
+				this.nextTurn();
+				this.lifeStart();
 			}
-			this.nextTurn();
-		}.bind(this), speed);
+		}.bind(this), this.options.speed);
 	},
 	nextTurn: function() {
 		this.totalTurns++;
@@ -113,6 +125,10 @@ lifeGame = {
 			delete cell.dataset.nextstate;
 		});
 	},
+	incrementTurn: function() {
+		this.totalTurns++;
+		this.txtTotalTurns.innerHTML = this.totalTurns;
+	},
 	_extend : function(a, b){
     for(var key in b)
         if(b.hasOwnProperty(key))
@@ -121,4 +137,7 @@ lifeGame = {
 	}
 }
 
-lifeGame._init({tableSize: 40, speed: 100});
+lifeGame._init({
+	tableSize: 40,
+	speed: 100
+});
