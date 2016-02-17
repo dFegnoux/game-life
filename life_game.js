@@ -1,47 +1,106 @@
 lifeGame = {
 	stopInterval: true,
 	currentTable: [],
-	totalTurns:0,
 	lifeContainer: null,
 	txtTotalTurns: null,
+	totalTurns:0,
+	btns: {},
+	speed: 0,
 	_defaults: {
 		tableSize: 20,
 		aliveClass: "alive",
-		speed: 50
+		speedOptions: {
+			default: 100,
+			min: 1,
+			max: 3000
+		},
+		gameContainer: null,
+		btnsList: ['speed', 'start', 'stop', 'next', 'clear'],
 	},
 	_init: function(options){
 		this.options = this._extend(this._defaults, options);
+		this._createInterface();
+		this._setEvents();
 		this.txtTotalTurns = document.getElementById('turn-counter');
-		this.lifeContainer = document.getElementById('life-container');
-
-		this.createTable(this.options.tableSize);
-
-		var btnStart = document.getElementById('btn-start');
-		var btnStop = document.getElementById('btn-stop');
-		var btnNext = document.getElementById('btn-next');
-		var btnClear = document.getElementById('btn-clear');
-		var rangeSpeed = document.getElementById('input-speed');
-		
-		btnStart.addEventListener('click', function() {
-			this.stopInterval = false;
-			this.lifeStart();
+	},
+	_createInterface: function() {
+		if(this.options.gameContainer) {
+			var bottomContainer = document.createElement('div');
+			bottomContainer.className = 'bottom';
+			var actionsContainer = document.createElement('div');
+			actionsContainer.className = 'actions';
+			this.options.btnsList.forEach(function(btnName) {
+				if(btnName === 'speed') {
+					var unit = 'ms';
+					var speedContainer = document.createElement('div');
+					
+					var minLabel = document.createElement('label');
+					minLabel.innerHTML = this.options.speedOptions.min+' '+unit;
+					var maxLabel = document.createElement('label');
+					maxLabel.innerHTML = this.options.speedOptions.max+' '+unit;
+					this.btns.speed = document.createElement('input');
+					this.btns.speed.type = 'range';
+					this.btns.speed.name = 'range';
+					this.btns.speed.min = this.options.speedOptions.min;
+					this.btns.speed.max = this.options.speedOptions.max;
+					this.btns.speed.value = this.options.speedOptions.default;
+					speedContainer.appendChild(minLabel);
+					speedContainer.appendChild(this.btns.speed);
+					speedContainer.appendChild(maxLabel);
+					actionsContainer.appendChild(speedContainer);
+				}
+				else{
+					this.btns[btnName] = document.createElement('button');
+					this.btns[btnName].innerHTML = btnName;
+					actionsContainer.appendChild(this.btns[btnName]);
+				}
+			}.bind(this));
+			bottomContainer.appendChild(actionsContainer);
+			this.lifeContainer = document.createElement('div');
+			this.lifeContainer.id = 'life-container';
+			this.options.gameContainer.appendChild(this.lifeContainer);
+			this.options.gameContainer.appendChild(bottomContainer);
+			this.createTable(this.options.tableSize);
+		}
+	},
+	_setEvents: function() {
+		this.lifeContainer.addEventListener('click', function(e) {
+			var cell = e.target;
+			if(cell.tagName.toLowerCase() === 'td'){
+				this.toggleCellStatus(cell.dataset.x, cell.dataset.y);
+			}
 		}.bind(this));
 
-		btnStop.addEventListener('click', function() {
-			this.stopInterval = true;
-		}.bind(this));
+		if(this.btns.start){
+			this.btns.start.addEventListener('click', function() {
+				this.stopInterval = false;
+				this.lifeStart();
+			}.bind(this));
+		}
 
-		btnNext.addEventListener('click', function() {
-			this.nextTurn();
-		}.bind(this));
+		if(this.btns.stop){
+			this.btns.stop.addEventListener('click', function() {
+				this.stopInterval = true;
+			}.bind(this));
+		}
 
-		btnClear.addEventListener('click', function() {
-			this.clearLife();
-		}.bind(this));
+		if(this.btns.stop){
+			this.btns.next.addEventListener('click', function() {
+				this.nextTurn();
+			}.bind(this));
+		}
 
-		rangeSpeed.addEventListener('change', function(e) {
-			this.options.speed = e.target.value;
-		}.bind(this));
+		if(this.btns.stop){
+			this.btns.clear.addEventListener('click', function() {
+				this.clearLife();
+			}.bind(this));
+		}
+
+		if(this.btns.speed){
+			this.btns.speed.addEventListener('change', function(e) {
+				this.speed = e.target.value;
+			}.bind(this));
+		}
 	},
 	createTable: function(tableSize) {
 		var self = this;
@@ -54,9 +113,6 @@ lifeGame = {
 				cell.dataset.x = x;
 				cell.dataset.y = y;
 				self.currentTable[x][y] = cell;
-				cell.addEventListener('click', function() {
-					self.toggleCellStatus(this.dataset.x, this.dataset.y);
-				});
 				line.appendChild(cell);
 			}
 			table.appendChild(line);
@@ -81,12 +137,18 @@ lifeGame = {
 	},
 	lifeStart: function() {
 		window.setTimeout(function(){
+			console.log(this.speed);
 			this.incrementTurn();
 			if(!this.stopInterval){
 				this.nextTurn();
 				this.lifeStart();
 			}
-		}.bind(this), this.options.speed);
+			else{
+				if(!this.txtTotalTurns){
+					alert('Life stopped at turn #'+this.totalTurns);
+				}
+			}
+		}.bind(this), this.speed);
 	},
 	nextTurn: function() {
 		if(this.stopInterval){
@@ -126,17 +188,19 @@ lifeGame = {
 	},
 	incrementTurn: function() {
 		this.totalTurns++;
-		this.txtTotalTurns.innerHTML = this.totalTurns;
+		if(this.txtTotalTurns){
+			this.txtTotalTurns.innerHTML = this.totalTurns;
+		}
 	},
 	_extend : function(a, b){
-    for(var key in b)
-        if(b.hasOwnProperty(key))
-            a[key] = b[key];
-    return a;
+	    for(var key in b)
+	        if(b.hasOwnProperty(key))
+	            a[key] = b[key];
+	    return a;
 	}
-}
+};
 
 lifeGame._init({
-	tableSize: 40,
-	speed: 100
+	gameContainer: document.getElementById('game-container'),
+	tableSize: 40
 });

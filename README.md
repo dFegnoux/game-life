@@ -8,6 +8,5 @@ There is for now a few actions and options:
 
 **TODO :**
 - Refactor code
-- Use less html and let javascript creates needed elements like container and actions buttons
 - Use more options to customize the game
 - Detect when previous and current states are the same to automaticaly stop simulation
