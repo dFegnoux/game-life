@@ -40,7 +40,6 @@ lifeGame = {
 					maxLabel.innerHTML = this.options.speedOptions.max+' '+unit;
 					this.btns.speed = document.createElement('input');
 					this.btns.speed.type = 'range';
-					this.btns.speed.name = 'range';
 					this.btns.speed.min = this.options.speedOptions.min;
 					this.btns.speed.max = this.options.speedOptions.max;
 					this.btns.speed.value = this.options.speedOptions.default;
@@ -123,9 +122,13 @@ lifeGame = {
 		this.currentTable  = [];
 		this.stopInterval = true;
 		this.totalTurns = 0;
-		this.lifeContainer.innerHTML = "";
-		this.txtTotalTurns.innerHTML = this.totalTurns;
-		this.createTable(this.options.tableSize);
+		var table = document.getElementsByTagName('td');
+		for(cell in table){
+			table[cell].className="";
+		}
+		if(this.txtTotalTurns){
+			this.txtTotalTurns.innerHTML = this.totalTurns;
+		}
 	},
 	toggleCellStatus: function(x, y) {
 		var cell = this.currentTable[x][y];
