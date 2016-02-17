@@ -89,7 +89,6 @@ lifeGame = {
 		}.bind(this), this.options.speed);
 	},
 	nextTurn: function() {
-		this.totalTurns++;
 		if(this.stopInterval){
 			console.log("Life stopped on turn #"+this.totalTurns);
 		}
