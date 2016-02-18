@@ -8,14 +8,15 @@ lifeGame = {
 	speed: 0,
 	_defaults: {
 		tableSize: 20,
+		gameContainer: null,
+		dragToToggle: true,
 		aliveClass: "alive",
+		btnsList: ['speed', 'start', 'stop', 'next', 'clear'],
 		speedOptions: {
 			default: 100,
 			min: 1,
 			max: 3000
-		},
-		gameContainer: null,
-		btnsList: ['speed', 'start', 'stop', 'next', 'clear'],
+		}
 	},
 	_init: function(options){
 		this.options = this._extend(this._defaults, options);
@@ -70,6 +71,15 @@ lifeGame = {
 				this.toggleCellStatus(cell.dataset.x, cell.dataset.y);
 			}
 		}.bind(this));
+
+		if(this.options.dragToToggle){
+			this.lifeContainer.addEventListener('dragenter', function(e) {
+				var cell = e.target;
+				if(cell.tagName.toLowerCase() === 'td'){
+					this.toggleCellStatus(cell.dataset.x, cell.dataset.y);
+				}
+			}.bind(this));
+		}
 
 		if(this.btns.start){
 			this.btns.start.addEventListener('click', function() {
