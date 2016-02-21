@@ -60,7 +60,7 @@ lifeGame = {
 			this.lifeContainer.id = 'life-container';
 			this.options.gameContainer.appendChild(this.lifeContainer);
 			this.options.gameContainer.appendChild(bottomContainer);
-			this.createTable(this.options.tableSize);
+			this.createTable();
 		}
 	},
 	_setEvents: function() {
@@ -111,13 +111,14 @@ lifeGame = {
 			}.bind(this));
 		}
 	},
-	createTable: function(tableSize) {
+	createTable: function() {
 		var self = this;
 		var table = document.createElement('table');
-		for(var x = 1; x <= tableSize; x++){
+		for(var x = 1; x <= this.options.tableSize; x++){
 			var line = document.createElement('tr');
 			self.currentTable[x] = [];
-			for(var y = 1; y <= tableSize; y++){
+			console.log(this.options.tableSize);
+			for(var y = 1; y <= this.options.tableSize; y++){
 				var cell = document.createElement('td');
 				cell.dataset.x = x;
 				cell.dataset.y = y;
@@ -126,19 +127,22 @@ lifeGame = {
 			}
 			table.appendChild(line);
 		}
+		console.log('toto', table);
 		this.lifeContainer.appendChild(table);
 	},
 	clearLife: function() {
-		this.currentTable  = [];
+		this.currentTable = [];
+		this.lifeContainer.innerHTML = "";
 		this.stopInterval = true;
 		this.totalTurns = 0;
 		var table = document.getElementsByTagName('td');
 		for(cell in table){
-			table[cell].className="";
+			table[cell].className ="";
 		}
 		if(this.txtTotalTurns){
 			this.txtTotalTurns.innerHTML = this.totalTurns;
 		}
+		this.createTable();
 	},
 	toggleCellStatus: function(x, y) {
 		var cell = this.currentTable[x][y];
