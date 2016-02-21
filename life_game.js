@@ -117,7 +117,6 @@ lifeGame = {
 		for(var x = 1; x <= this.options.tableSize; x++){
 			var line = document.createElement('tr');
 			self.currentTable[x] = [];
-			console.log(this.options.tableSize);
 			for(var y = 1; y <= this.options.tableSize; y++){
 				var cell = document.createElement('td');
 				cell.dataset.x = x;
@@ -127,7 +126,6 @@ lifeGame = {
 			}
 			table.appendChild(line);
 		}
-		console.log('toto', table);
 		this.lifeContainer.appendChild(table);
 	},
 	clearLife: function() {
