@@ -6,6 +6,7 @@ lifeGame = {
 	totalTurns:0,
 	btns: {},
 	speed: 0,
+	maxMortality: 0,
 	_defaults: {
 		tableSize: 20,
 		gameContainer: null,
@@ -16,6 +17,11 @@ lifeGame = {
 			default: 100,
 			min: 1,
 			max: 3000
+		},
+		mortalityRates: {
+			25: "0F0",
+			50: "0FF",
+			75: "FF0"
 		}
 	},
 	_init: function(options){
@@ -121,6 +127,7 @@ lifeGame = {
 				var cell = document.createElement('td');
 				cell.dataset.x = x;
 				cell.dataset.y = y;
+				cell.dataset.mortality = 0;
 				self.currentTable[x][y] = cell;
 				line.appendChild(cell);
 			}
@@ -152,7 +159,6 @@ lifeGame = {
 	},
 	lifeStart: function() {
 		window.setTimeout(function(){
-			console.log(this.speed);
 			this.incrementTurn();
 			if(!this.stopInterval){
 				this.nextTurn();
@@ -166,9 +172,6 @@ lifeGame = {
 		}.bind(this), this.speed);
 	},
 	nextTurn: function() {
-		if(this.stopInterval){
-			console.log("Life stopped on turn #"+this.totalTurns);
-		}
 		for(var x = 1; x <= this.options.tableSize; x++){
 			for(var y = 1; y <= this.options.tableSize; y++){
 				this.checkNeighbour(x,y);
@@ -178,6 +181,7 @@ lifeGame = {
 	},
 	checkNeighbour: function(x, y) {
 		var nbNeighbour = 0;
+		var cell = this.currentTable[x][y];
 		for(var i=-1; i<= 1; i++){
 			for(var j=-1; j<= 1; j++){
 				if(((x+i) > 0 && (x+i) < this.options.tableSize) && ((y+j) > 0 && (y+j) < this.options.tableSize) && !(x+i === x && y+j === y)){
@@ -188,10 +192,30 @@ lifeGame = {
 			}
 		}
 		if(nbNeighbour < 2 || nbNeighbour > 3){
-			this.currentTable[x][y].dataset.nextstate = "";
+			cell.dataset.nextstate = "";
+			if(cell.className == this.options.aliveClass){
+				cell.dataset.mortality ++;
+				if(cell.dataset.mortality >= this.maxMortality) {
+					this.maxMortality = cell.dataset.mortality;
+				}
+				var percent = Math.ceil((cell.dataset.mortality * 100) / this.maxMortality);
+				for(key in this.options.mortalityRates) {
+					if(percent >= key){
+						cell.dataset.mortalityColor = this.options.mortalityRates[key];
+					}
+				}
+			}
 		}
 		if(nbNeighbour === 3){
-			this.currentTable[x][y].dataset.nextstate = this.options.aliveClass;
+			cell.dataset.nextstate = this.options.aliveClass;
+		}
+
+		// Apply color if active
+		if(cell.className == this.options.aliveClass && cell.dataset.mortalityColor){
+			cell.style.backgroundColor = cell.dataset.mortalityColor;
+		}
+		else {
+			cell.style.backgroundColor = null;
 		}
 	},
 	applyNextState: function() {
