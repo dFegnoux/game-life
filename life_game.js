@@ -19,9 +19,11 @@ lifeGame = {
 			max: 3000
 		},
 		mortalityRates: {
-			25: "0F0",
-			50: "0FF",
-			75: "FF0"
+			0: "#BA68C8",
+			25: "#AB47BC",
+			50: "#9C27B0",
+			75: "#8E24AA",
+			90: "#7B1FA2"
 		}
 	},
 	_init: function(options){
@@ -194,36 +196,38 @@ lifeGame = {
 		if(nbNeighbour < 2 || nbNeighbour > 3){
 			cell.dataset.nextstate = "";
 			if(cell.className == this.options.aliveClass){
-				cell.dataset.mortality ++;
-				if(cell.dataset.mortality >= this.maxMortality) {
+				cell.dataset.mortality++;
+				if(parseInt(cell.dataset.mortality, 10) > parseInt(this.maxMortality, 10)) {
 					this.maxMortality = cell.dataset.mortality;
-				}
-				var percent = Math.ceil((cell.dataset.mortality * 100) / this.maxMortality);
-				for(key in this.options.mortalityRates) {
-					if(percent >= key){
-						cell.dataset.mortalityColor = this.options.mortalityRates[key];
-					}
 				}
 			}
 		}
 		if(nbNeighbour === 3){
 			cell.dataset.nextstate = this.options.aliveClass;
 		}
-
-		// Apply color if active
-		if(cell.className == this.options.aliveClass && cell.dataset.mortalityColor){
-			cell.style.backgroundColor = cell.dataset.mortalityColor;
-		}
-		else {
-			cell.style.backgroundColor = null;
-		}
 	},
 	applyNextState: function() {
 		var toChangeState = document.querySelectorAll('[data-nextstate]');
 		[].forEach.call(toChangeState, function(cell) {
 			cell.className = cell.dataset.nextstate;
+
+			// Apply good mortality rate
+			var percent = (cell.dataset.mortality * 100) / this.maxMortality;
+			for(var key in this.options.mortalityRates) {
+				if(percent >= key){
+					cell.dataset.mortalityColor = this.options.mortalityRates[key];
+				}
+			}
+
+			// Apply color if active
+			if(cell.className == this.options.aliveClass && cell.dataset.mortalityColor){
+				cell.style.backgroundColor = cell.dataset.mortalityColor;
+			}
+			else {
+				cell.style.backgroundColor = null;
+			}
 			delete cell.dataset.nextstate;
-		});
+		}.bind(this));
 	},
 	incrementTurn: function() {
 		this.totalTurns++;
