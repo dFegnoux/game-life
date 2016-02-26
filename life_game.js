@@ -77,7 +77,7 @@ lifeGame = {
 			this.mouseIsDown = true;
 			var cell = e.target;
 			if(cell.tagName.toLowerCase() === 'td'){
-				this.toggleCellStatus(cell.dataset.x, cell.dataset.y);
+				this.toggleCellStatus(cell);
 			}
 		}.bind(this));
 
@@ -86,22 +86,7 @@ lifeGame = {
 			this.mouseIsDown = false;
 		}.bind(this));
 
-		if(this.options.dragToToggle){
-			var cells = document.querySelectorAll('td');
-			for(var i = 0; i < cells.length; i++){
-				var cell = cells[i];
-				cell.addEventListener('mouseenter', function(e) {
-					if(this.mouseIsDown){
-						var cell = e.target;
-						if(cell.tagName.toLowerCase() === 'td'){
-							if(cell.className !== this.options.aliveClass){
-								this.toggleCellStatus(cell.dataset.x, cell.dataset.y);
-							}
-						}
-					}
-				}.bind(this));
-			}
-		}
+		this.setDragEvent();
 
 		if(this.btns.start){
 			this.btns.start.addEventListener('click', function() {
@@ -134,6 +119,24 @@ lifeGame = {
 			}.bind(this));
 		}
 	},
+	setDragEvent: function() {
+		if(this.options.dragToToggle){
+			var cells = document.querySelectorAll('td');
+			for(var i = 0; i < cells.length; i++){
+				var cell = cells[i];
+				cell.addEventListener('mouseenter', function(e) {
+					if(this.mouseIsDown){
+						var cell = e.target;
+						if(cell.tagName.toLowerCase() === 'td'){
+							if(!this.isAlive(cell)){
+								this.toggleCellStatus(cell);
+							}
+						}
+					}
+				}.bind(this));
+			}
+		}
+	},
 	createTable: function() {
 		var self = this;
 		var table = document.createElement('table');
@@ -152,6 +155,7 @@ lifeGame = {
 			table.appendChild(line);
 		}
 		this.lifeContainer.appendChild(table);
+		this.setDragEvent();
 	},
 	clearLife: function() {
 		this.currentTable = [];
@@ -167,8 +171,7 @@ lifeGame = {
 		}
 		this.createTable();
 	},
-	toggleCellStatus: function(x, y) {
-		var cell = this.currentTable[x][y];
+	toggleCellStatus: function(cell) {
 		if(cell.className === this.options.aliveClass){
 			cell.className = "";
 		} else {
@@ -206,21 +209,20 @@ lifeGame = {
 				if(((x+i) > 0 && (x+i) < this.options.tableSize) && ((y+j) > 0 && (y+j) < this.options.tableSize) && !(x+i === x && y+j === y)){
 					if(this.currentTable[x+i][y+j].className === this.options.aliveClass) {
 						nbNeighbour++;
-						this.updateCellColor(cell);
 					}
 				}
 			}
 		}
 		if(nbNeighbour < 2 || nbNeighbour > 3){
 			cell.dataset.nextstate = "";
-			if(cell.className == this.options.aliveClass){
+			if(this.isAlive(cell)){
 				cell.dataset.nbDeaths++;
-				this.updateCellColor(cell);
 			}
 		}
 		if(nbNeighbour === 3){
 			cell.dataset.nextstate = this.options.aliveClass;
 		}
+		this.updateCellColor(cell);
 	},
 	applyMortalityRate: function(cell) {
 		var percent = cell.dataset.nbDeaths / this.maxMortality;
@@ -231,17 +233,20 @@ lifeGame = {
 			cell.dataset.mortalityColor = "rgb("+newColor.join(',')+")";
 		}
 		// Apply color if active
-		if(cell.className === this.options.aliveClass && cell.dataset.mortalityColor){
+		if(this.isAlive(cell) && cell.dataset.mortalityColor){
 			cell.style.backgroundColor = cell.dataset.mortalityColor;
 		}
 		else {
-			cell.style.backgroundColor = null;
+			cell.style.backgroundColor = "transparent";
 		}
 	},
 	updateCellColor: function(cell) {
 		if(parseInt(cell.dataset.nbDeaths, 10) > parseInt(this.maxMortality, 10)) {
 			this.maxMortality = cell.dataset.nbDeaths;
 		}
+	},
+	isAlive: function(cell) {
+		return cell.className === this.options.aliveClass;
 	},
 	applyNextState: function() {
 		var toChangeState = document.querySelectorAll('[data-nextstate]');
