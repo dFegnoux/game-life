@@ -5,8 +5,9 @@ lifeGame = {
 	txtTotalTurns: null,
 	totalTurns:0,
 	btns: {},
-	speed: 0,
+	speed: 100,
 	maxMortality: 0,
+	mouseIsDown: false,
 	_defaults: {
 		tableSize: 20,
 		gameContainer: null,
@@ -18,16 +19,16 @@ lifeGame = {
 			min: 1,
 			max: 3000
 		},
-		mortalityRates: {
-			0: "#BA68C8",
-			25: "#AB47BC",
-			50: "#9C27B0",
-			75: "#8E24AA",
-			90: "#7B1FA2"
+		mortalityColors: {
+			min: [225, 225, 225],
+			max: [0, 0, 0]
 		}
 	},
 	_init: function(options){
 		this.options = this._extend(this._defaults, options);
+		this.baseColorPercent = this.options.mortalityColors.min.map(function(min, index) {
+			return min-this.options.mortalityColors.max[index];
+		}.bind(this));
 		this._createInterface();
 		this._setEvents();
 		this.txtTotalTurns = document.getElementById('turn-counter');
@@ -72,20 +73,34 @@ lifeGame = {
 		}
 	},
 	_setEvents: function() {
-		this.lifeContainer.addEventListener('click', function(e) {
+		document.addEventListener('mousedown', function(e) {
+			this.mouseIsDown = true;
 			var cell = e.target;
 			if(cell.tagName.toLowerCase() === 'td'){
 				this.toggleCellStatus(cell.dataset.x, cell.dataset.y);
 			}
 		}.bind(this));
 
+
+		document.addEventListener('mouseup', function(e) {
+			this.mouseIsDown = false;
+		}.bind(this));
+
 		if(this.options.dragToToggle){
-			this.lifeContainer.addEventListener('dragenter', function(e) {
-				var cell = e.target;
-				if(cell.tagName.toLowerCase() === 'td'){
-					this.toggleCellStatus(cell.dataset.x, cell.dataset.y);
-				}
-			}.bind(this));
+			var cells = document.querySelectorAll('td');
+			for(var i = 0; i < cells.length; i++){
+				var cell = cells[i];
+				cell.addEventListener('mouseenter', function(e) {
+					if(this.mouseIsDown){
+						var cell = e.target;
+						if(cell.tagName.toLowerCase() === 'td'){
+							if(cell.className !== this.options.aliveClass){
+								this.toggleCellStatus(cell.dataset.x, cell.dataset.y);
+							}
+						}
+					}
+				}.bind(this));
+			}
 		}
 
 		if(this.btns.start){
@@ -129,7 +144,8 @@ lifeGame = {
 				var cell = document.createElement('td');
 				cell.dataset.x = x;
 				cell.dataset.y = y;
-				cell.dataset.mortality = 0;
+				cell.dataset.nbDeaths = 0;
+				cell.dataset.nextstate = null;
 				self.currentTable[x][y] = cell;
 				line.appendChild(cell);
 			}
@@ -143,7 +159,7 @@ lifeGame = {
 		this.stopInterval = true;
 		this.totalTurns = 0;
 		var table = document.getElementsByTagName('td');
-		for(cell in table){
+		for(var cell in table){
 			table[cell].className ="";
 		}
 		if(this.txtTotalTurns){
@@ -168,6 +184,7 @@ lifeGame = {
 			}
 			else{
 				if(!this.txtTotalTurns){
+					this.showAllMortalityRate();
 					alert('Life stopped at turn #'+this.totalTurns);
 				}
 			}
@@ -189,6 +206,7 @@ lifeGame = {
 				if(((x+i) > 0 && (x+i) < this.options.tableSize) && ((y+j) > 0 && (y+j) < this.options.tableSize) && !(x+i === x && y+j === y)){
 					if(this.currentTable[x+i][y+j].className === this.options.aliveClass) {
 						nbNeighbour++;
+						this.updateCellColor(cell);
 					}
 				}
 			}
@@ -196,36 +214,40 @@ lifeGame = {
 		if(nbNeighbour < 2 || nbNeighbour > 3){
 			cell.dataset.nextstate = "";
 			if(cell.className == this.options.aliveClass){
-				cell.dataset.mortality++;
-				if(parseInt(cell.dataset.mortality, 10) > parseInt(this.maxMortality, 10)) {
-					this.maxMortality = cell.dataset.mortality;
-				}
+				cell.dataset.nbDeaths++;
+				this.updateCellColor(cell);
 			}
 		}
 		if(nbNeighbour === 3){
 			cell.dataset.nextstate = this.options.aliveClass;
 		}
 	},
+	applyMortalityRate: function(cell) {
+		var percent = cell.dataset.nbDeaths / this.maxMortality;
+		if(parseInt(cell.dataset.nbDeaths, 10) > -1){
+			var newColor = this.options.mortalityColors.max.map(function(max, key) {
+				return  parseInt((this.baseColorPercent[key] * (1-percent)) + max);
+			}.bind(this));
+			cell.dataset.mortalityColor = "rgb("+newColor.join(',')+")";
+		}
+		// Apply color if active
+		if(cell.className === this.options.aliveClass && cell.dataset.mortalityColor){
+			cell.style.backgroundColor = cell.dataset.mortalityColor;
+		}
+		else {
+			cell.style.backgroundColor = null;
+		}
+	},
+	updateCellColor: function(cell) {
+		if(parseInt(cell.dataset.nbDeaths, 10) > parseInt(this.maxMortality, 10)) {
+			this.maxMortality = cell.dataset.nbDeaths;
+		}
+	},
 	applyNextState: function() {
 		var toChangeState = document.querySelectorAll('[data-nextstate]');
 		[].forEach.call(toChangeState, function(cell) {
 			cell.className = cell.dataset.nextstate;
-
-			// Apply good mortality rate
-			var percent = (cell.dataset.mortality * 100) / this.maxMortality;
-			for(var key in this.options.mortalityRates) {
-				if(percent >= key){
-					cell.dataset.mortalityColor = this.options.mortalityRates[key];
-				}
-			}
-
-			// Apply color if active
-			if(cell.className == this.options.aliveClass && cell.dataset.mortalityColor){
-				cell.style.backgroundColor = cell.dataset.mortalityColor;
-			}
-			else {
-				cell.style.backgroundColor = null;
-			}
+			this.applyMortalityRate(cell);
 			delete cell.dataset.nextstate;
 		}.bind(this));
 	},
@@ -233,6 +255,15 @@ lifeGame = {
 		this.totalTurns++;
 		if(this.txtTotalTurns){
 			this.txtTotalTurns.innerHTML = this.totalTurns;
+		}
+	},
+	showAllMortalityRate: function(){
+		var toSetAlive = document.getElementsByTagName('TD');
+		for (var key in toSetAlive) {
+			if(toSetAlive[key].dataset && parseInt(toSetAlive[key].dataset.nbDeaths, 10)) {
+				toSetAlive[key].className = this.options.aliveClass;
+				this.applyMortalityRate(toSetAlive[key]);
+			}
 		}
 	},
 	_extend : function(a, b){
