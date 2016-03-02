@@ -213,6 +213,11 @@ lifeGame = {
 				}
 			}
 		}
+		// Lets considerate that next default value of an alive cell is alive
+		if(this.isAlive(cell)){
+			cell.dataset.nextstate = this.options.aliveClass;
+		}
+
 		if(nbNeighbour < 2 || nbNeighbour > 3){
 			cell.dataset.nextstate = "";
 			if(this.isAlive(cell)){
