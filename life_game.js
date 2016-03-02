@@ -22,10 +22,15 @@ lifeGame = {
 		mortalityColors: {
 			min: [225, 225, 225],
 			max: [0, 0, 0]
-		}
+		},
+		randomColor: false,
+		discoMode: false
 	},
 	_init: function(options){
 		this.options = this._extend(this._defaults, options);
+		if(this.options.randomColor){
+			this.randomColor();
+		}
 		this.baseColorPercent = this.options.mortalityColors.min.map(function(min, index) {
 			return min-this.options.mortalityColors.max[index];
 		}.bind(this));
@@ -194,6 +199,9 @@ lifeGame = {
 		}.bind(this), this.speed);
 	},
 	nextTurn: function() {
+		if(this.options.randomColor && this.options.discoMode){
+			this.randomColor();
+		}
 		for(var x = 1; x <= this.options.tableSize; x++){
 			for(var y = 1; y <= this.options.tableSize; y++){
 				this.checkNeighbour(x,y);
@@ -276,6 +284,17 @@ lifeGame = {
 			}
 		}
 	},
+	randomColor: function(){
+		var max = 255;
+		var min = 0;
+		this.options.mortalityColors.min.forEach(function(value, key) {
+			this.options.mortalityColors.min[key] = Math.floor(Math.random() * (max - min) + min);
+		}.bind(this));
+		this.options.mortalityColors.max.forEach(function(value, key) {
+			this.options.mortalityColors.max[key] = Math.floor(Math.random() * (max - min) + min);
+		}.bind(this));
+		console.log(this.options.mortalityColors);
+	},
 	_extend : function(a, b){
 		for(var key in b)
 			if(b.hasOwnProperty(key))
@@ -283,8 +302,3 @@ lifeGame = {
 		return a;
 	}
 };
-
-lifeGame._init({
-	gameContainer: document.getElementById('game-container'),
-	tableSize: 40
-});
