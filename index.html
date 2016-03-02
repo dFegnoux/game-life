@@ -6,11 +6,14 @@
 	</head>
 	<body>
 		<div id="game-container"></div>
-		<script src="life_game.js">
-    lifeGame._init({
-      gameContainer: document.getElementById('game-container'),
-      tableSize: 40
-    });
-    </script>
+		<script src="life_game.js"></script>
+		<script text/javascript>
+			lifeGame._init({
+				gameContainer: document.getElementById('game-container'),
+				tableSize: 40,
+				randomColor: true,
+				discoMode: true
+			});
+		</script>
 	</body>
 </html>
