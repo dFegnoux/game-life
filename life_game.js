@@ -8,6 +8,29 @@ lifeGame = {
 	speed: 100,
 	maxMortality: 0,
 	mouseIsDown: false,
+	patterns: {
+		"glider" : [
+			 [1, 1, 1],
+			 [1, 0, 0],
+			 [0, 1, 0]
+		],
+		"space ship" : [
+			 [0, 1, 0, 0, 1],
+			 [1, 0, 0, 0, 0],
+			 [1, 0, 0, 0, 1],
+			 [1, 1, 1, 1, 0]
+		],
+		"F-pentomino" : [
+			 [0, 1, 1],
+			 [1, 1, 0],
+			 [0, 1, 0]
+		],
+		"acorn" : [
+			 [0, 1, 0, 0, 0, 0, 0],
+			 [0, 0, 0, 1, 0, 0, 0],
+			 [1, 1, 0, 0, 1, 1, 1]
+		]
+	},
 	_defaults: {
 		tableSize: 20,
 		gameContainer: null,
@@ -74,11 +97,14 @@ lifeGame = {
 			this.lifeContainer.id = 'life-container';
 			this.options.gameContainer.appendChild(this.lifeContainer);
 			this.options.gameContainer.appendChild(bottomContainer);
+			this.options.gameContainer.appendChild(this.createPatterns());
 			this.createTable();
 		}
 	},
 	_setEvents: function() {
-		document.addEventListener('mousedown', function(e) {
+		var draggedElement;
+
+		this.lifeContainer.addEventListener('mousedown', function(e) {
 			this.mouseIsDown = true;
 			var cell = e.target;
 			if(cell.tagName.toLowerCase() === 'td'){
@@ -86,8 +112,48 @@ lifeGame = {
 			}
 		}.bind(this));
 
+		document.addEventListener("drag", function( event ) {
 
-		document.addEventListener('mouseup', function(e) {
+	  }, false);
+
+		document.addEventListener('dragstart', function(e) {
+			// store a ref. on the dragged elem
+			if(e.target.tagName.toLowerCase() === 'table'){
+				draggedElement = e.target;
+				// make it half transparent
+				e.target.style.opacity = 0.5;
+			}
+		}, false);
+
+		this.lifeContainer.addEventListener('dragenter', function(e) {
+			// prevent default to allow drop
+			var cell = e.target;
+			if(cell.tagName.toLowerCase() === 'td'){
+				  event.target.style.background = 'purple';
+			}
+		}, false);
+
+		this.lifeContainer.addEventListener('dragleave', function(e) {
+			// prevent default to allow drop
+			var cell = e.target;
+			if(cell.tagName.toLowerCase() === 'td'){
+				  event.target.style.background = '';
+			}
+		}, false);
+
+		document.addEventListener('drop', function(e) {
+			var cell = e.target;
+			if(cell.tagName.toLowerCase() === 'td'){
+				this.applyPattern(draggedElement.id, cell);
+			}
+		}.bind(this));
+
+		document.addEventListener("dragover", function( event ) {
+			// prevent default to allow drop
+			event.preventDefault();
+		}, false);
+
+		this.lifeContainer.addEventListener('mouseup', function(e) {
 			this.mouseIsDown = false;
 		}.bind(this));
 
@@ -112,7 +178,7 @@ lifeGame = {
 			}.bind(this));
 		}
 
-		if(this.btns.stop){
+		if(this.btns.clear){
 			this.btns.clear.addEventListener('click', function() {
 				this.clearLife();
 			}.bind(this));
@@ -123,6 +189,37 @@ lifeGame = {
 				this.speed = e.target.value;
 			}.bind(this));
 		}
+	},
+	createPatterns: function() {
+		var patternsContainer = document.createElement('div');
+		patternsContainer.className = "pattern-container";
+		for(var patternName in this.patterns) {
+			var patternContainer = document.createElement('div');
+			patternContainer.className = "pattern";
+			var patternTable = document.createElement('table');
+			patternTable.id = patternName;
+			patternTable.draggable = true;
+			for(var y = 0; y < this.patterns[patternName].length; y++){
+				var line = this.patterns[patternName][y];
+				var tableLine = document.createElement('tr');
+				for(var x = 0; x < line.length; x++){
+					var cell = this.patterns[patternName][y][x];
+					var tableCell = document.createElement('td');
+					if(cell === 1) {
+						tableCell.dataset.id = patternName;
+						tableCell.className = this.options.aliveClass;
+					}
+					tableLine.appendChild(tableCell);
+				}
+				patternTable.appendChild(tableLine);
+			}
+			var patternTitle = document.createElement('div');
+			patternTitle.innerHTML = patternName;
+			patternContainer.appendChild(patternTitle);
+			patternContainer.appendChild(patternTable);
+			patternsContainer.appendChild(patternContainer);
+		}
+		return patternsContainer;
 	},
 	setDragEvent: function() {
 		if(this.options.dragToToggle){
@@ -145,16 +242,16 @@ lifeGame = {
 	createTable: function() {
 		var self = this;
 		var table = document.createElement('table');
-		for(var x = 1; x <= this.options.tableSize; x++){
+		for(var y = 1; y <= this.options.tableSize; y++){
 			var line = document.createElement('tr');
-			self.currentTable[x] = [];
-			for(var y = 1; y <= this.options.tableSize; y++){
+			self.currentTable[y] = [];
+			for(var x = 1; x <= this.options.tableSize; x++){
 				var cell = document.createElement('td');
 				cell.dataset.x = x;
 				cell.dataset.y = y;
 				cell.dataset.nbDeaths = 0;
 				cell.dataset.nextstate = null;
-				self.currentTable[x][y] = cell;
+				self.currentTable[y][x] = cell;
 				line.appendChild(cell);
 			}
 			table.appendChild(line);
@@ -214,7 +311,7 @@ lifeGame = {
 		var cell = this.currentTable[x][y];
 		for(var i=-1; i<= 1; i++){
 			for(var j=-1; j<= 1; j++){
-				if(((x+i) > 0 && (x+i) < this.options.tableSize) && ((y+j) > 0 && (y+j) < this.options.tableSize) && !(x+i === x && y+j === y)){
+				if(((x+i) > 0 && (x+i) <= this.options.tableSize) && ((y+j) > 0 && (y+j) <= this.options.tableSize) && !(x+i === x && y+j === y)){
 					if(this.currentTable[x+i][y+j].className === this.options.aliveClass) {
 						nbNeighbour++;
 					}
@@ -284,7 +381,7 @@ lifeGame = {
 			}
 		}
 	},
-	randomColor: function(){
+	randomColor: function() {
 		var max = 255;
 		var min = 0;
 		this.options.mortalityColors.min.forEach(function(value, key) {
@@ -293,9 +390,27 @@ lifeGame = {
 		this.options.mortalityColors.max.forEach(function(value, key) {
 			this.options.mortalityColors.max[key] = Math.floor(Math.random() * (max - min) + min);
 		}.bind(this));
-		console.log(this.options.mortalityColors);
 	},
-	_extend : function(a, b){
+	applyPattern: function(patternId, cell) {
+		var pattern = this.patterns[patternId];
+		var currentCell = {
+			x: parseInt(cell.dataset.x),
+			y: parseInt(cell.dataset.y),
+		};
+		for(var patternY=0; patternY < pattern.length; patternY++){
+			for(var patternX=0; patternX < pattern[patternY].length; patternX++){
+				if(((currentCell.x+patternX) > 0 && (currentCell.x+patternX) <= this.options.tableSize) && ((currentCell.y+patternY) > 0 && currentCell.y+patternY) <= this.options.tableSize){
+					if(pattern[patternY][patternX] === 1){
+						this.currentTable[currentCell.y+patternY][currentCell.x+patternX].className = this.options.aliveClass;
+					}
+					else{
+						this.currentTable[currentCell.y+patternY][currentCell.x+patternX].className = "";
+					}
+				}
+			}
+		}
+	},
+	_extend : function(a, b) {
 		for(var key in b)
 			if(b.hasOwnProperty(key))
 				a[key] = b[key];
