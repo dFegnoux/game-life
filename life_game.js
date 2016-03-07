@@ -29,6 +29,23 @@ lifeGame = {
 			 [0, 1, 0, 0, 0, 0, 0],
 			 [0, 0, 0, 1, 0, 0, 0],
 			 [1, 1, 0, 0, 1, 1, 1]
+		],
+		"tetris" : [
+			 [0, 1, 0],
+			 [1, 1, 1]
+		],
+		"sword" : [
+			 [0, 0, 0, 1, 0, 0, 0],
+			 [0, 0, 1, 0, 1, 0, 0],
+			 [0, 0, 1, 0, 1, 0, 0],
+			 [0, 0, 1, 0, 1, 0, 0],
+			 [0, 0, 1, 0, 1, 0, 0],
+			 [0, 0, 1, 0, 1, 0, 0],
+			 [0, 1, 1, 0, 1, 1, 0],
+			 [1, 0, 0, 1, 0, 0, 1],
+			 [0, 1, 1, 1, 1, 1, 0],
+			 [0, 0, 0, 1, 0, 0, 0],
+			 [0, 0, 0, 1, 0, 0, 0]
 		]
 	},
 	_defaults: {
@@ -40,7 +57,7 @@ lifeGame = {
 		speedOptions: {
 			default: 100,
 			min: 1,
-			max: 3000
+			max: 1500
 		},
 		mortalityColors: {
 			min: [225, 225, 225],
@@ -121,7 +138,7 @@ lifeGame = {
 			if(e.target.tagName.toLowerCase() === 'table'){
 				draggedElement = e.target;
 				// make it half transparent
-				e.target.style.opacity = 0.5;
+				draggedElement.style.opacity = 0.5;
 			}
 		}, false);
 
@@ -146,6 +163,8 @@ lifeGame = {
 			if(cell.tagName.toLowerCase() === 'td'){
 				this.applyPattern(draggedElement.id, cell);
 			}
+			draggedElement.style.opacity = 1;
+			event.target.style.background = '';
 		}.bind(this));
 
 		document.addEventListener("dragover", function( event ) {
@@ -264,7 +283,7 @@ lifeGame = {
 		this.lifeContainer.innerHTML = "";
 		this.stopInterval = true;
 		this.totalTurns = 0;
-		var table = document.getElementsByTagName('td');
+		var table = this.lifeContainer.getElementsByTagName('td');
 		for(var cell in table){
 			table[cell].className ="";
 		}
