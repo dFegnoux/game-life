@@ -3,16 +3,18 @@
 	<head>
 		<title>Game of life</title>
     <link rel="stylesheet" type="text/css" href="style.css" media="all"/>
-	</head>
+	  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  </head>
 	<body>
 		<div id="game-container"></div>
 		<script src="life_game.js"></script>
 		<script text/javascript>
 			lifeGame._init({
 				gameContainer: document.getElementById('game-container'),
-				tableSize: 40,
+				tableSize: 50,
 				randomColor: true,
-				discoMode: true
+				discoMode: true,
+        specialEvent: true
 			});
 		</script>
 	</body>
