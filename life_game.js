@@ -302,6 +302,7 @@ lifeGame = {
 	lifeStart: function() {
 		window.setTimeout(function(){
 			this.incrementTurn();
+			this.lifeIsEmpty();
 			if(!this.stopInterval){
 				this.nextTurn();
 				this.lifeStart();
@@ -409,6 +410,18 @@ lifeGame = {
 		this.options.mortalityColors.max.forEach(function(value, key) {
 			this.options.mortalityColors.max[key] = Math.floor(Math.random() * (max - min) + min);
 		}.bind(this));
+	},
+	lifeIsEmpty: function() {
+		var table = this.lifeContainer.getElementsByTagName('td');
+		var nbAlive = 0;
+		for(i=0; i < table.length; i++) {
+			if(this.isAlive(table[i])) {
+				nbAlive++;
+			}
+		}
+		if(!nbAlive){
+			this.stopInterval = true;
+		}
 	},
 	applyPattern: function(patternId, cell) {
 		var pattern = this.patterns[patternId];
