@@ -3,9 +3,23 @@
 	<head>
 		<title>Game of life</title>
     <link rel="stylesheet" type="text/css" href="style.css" media="all"/>
-	  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
   </head>
 	<body>
+		<h1>The game of life</h1>
+		<p>If you want to find some information about this game, you may want to read <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life" title="Conway's Game of Life">this wikipedia article about game of life</a>.</p>
+
+		<dl>
+			<dt>Controls : </dt>
+			<dd>You can <b>click</b> on a cell to input life in it or to kill her</dd>
+			<dd>You can also <b>draw</b> on the grid by click and drag</dd>
+			<dd>You can <b>drag</b> some famous pattern as glider, zeplins on the grid</dd>
+			<dd>When you're done, launch the life simulation simply by press the <b>start</b> button</dd>
+			<dd>You can change the simulation speed at any moment by using the <b>speed</b> slider</dd>
+			<dd>If the slowest speed isn't sufficient, you can go to the next step by pressing the <b>step</b> button</dd>
+			<dd>When you stop life simulation, you will see a heat map of cells lifes, darker colour mean that their were a lot of deaths >:3</dd>
+		</dl>
+		<hr>
 		<div id="game-container"></div>
 		<script src="life_game.js"></script>
 		<script text/javascript>

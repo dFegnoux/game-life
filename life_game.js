@@ -88,7 +88,7 @@ lifeGame = {
 				if(btnName === 'speed') {
 					var unit = 'ms';
 					var speedContainer = document.createElement('div');
-					
+
 					var minLabel = document.createElement('label');
 					minLabel.innerHTML = this.options.speedOptions.min+' '+unit;
 					var maxLabel = document.createElement('label');
